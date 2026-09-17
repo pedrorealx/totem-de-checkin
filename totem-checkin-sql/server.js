@@ -7,6 +7,7 @@ const pool = require('./db/pool');
 const rateLimiter = require('./middleware/rateLimiter');
 const { errorHandler } = require('./middleware/errorHandler');
 const checkinRoutes = require('./routes/checkin');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use(express.static('public'));
 
 app.use('/checkin', rateLimiter);
 app.use('/', checkinRoutes);
+app.use('/', adminRoutes);
+
 
 app.get('/health', async (req, res, next) => {
   try {
