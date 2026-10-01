@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidatos cadastrados — Totem de Check-in</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --ink: #16233E;
+            --ink-soft: #4B5871;
+            --paper: #FAFBFC;
+            --backdrop: #EEF0F3;
+            --accent: #0F5C5C;
+            --accent-dark: #0C4747;
+            --success: #2E7D5B;
+            --success-bg: #E9F5EF;
+            --warn: #B4650E;
+            --warn-bg: #FBF0E1;
+            --border: #E3E6EA;
+            --row-hover: #F5F7F8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: var(--backdrop);
+            font-family: 'Inter', sans-serif;
+            color: var(--ink);
+        }
+
+        body {
+            padding: 32px 20px 60px;
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        header h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 26px;
+            margin: 0 0 6px;
+        }
+
+        header p {
+            margin: 0;
+            color: var(--ink-soft);
+            font-size: 13.5px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .card {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+        }
+
+        .card .num {
+            font-family: 'Fraunces', serif;
+            font-size: 26px;
+            font-weight: 600;
+        }
+
+        .card .label {
+            font-size: 12.5px;
+            color: var(--ink-soft);
+            margin-top: 2px;
+        }
+
+        .card.feito .num {
+            color: var(--success);
+        }
+
+        .card.pendente .num {
+            color: var(--warn);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .toolbar input,
+        .toolbar select {
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--paper);
+            color: var(--ink);
+        }
+
+        .toolbar input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .toolbar button {
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .toolbar button:hover {
+            background: var(--accent-dark);
+        }
+
+        .table-wrap {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        thead th {
+            text-align: left;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--ink-soft);
+            background: #F5F7F8;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--row-hover);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.feito {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .badge.pendente {
+            background: var(--warn-bg);
+            color: var(--warn);
+        }
+
+        .cpf {
+            font-variant-numeric: tabular-nums;
+            color: var(--ink-soft);
+        }
+
+        .empty,
+        .loading-msg {
+            padding: 40px 16px;
+            text-align: center;
+            color: var(--ink-soft);
+            font-size: 13.5px;
+        }
+
+        .footer-note {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--ink-soft);
+            text-align: right;
+        }
+
+        @media (max-width: 640px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            thead {
+                display: none;
+            }
+
+            table,
+            tbody,
+            tr,
+            td {
+                display: block;
+                width: 100%;
+            }
+
+            tbody tr {
+                border-bottom: 1px solid var(--border);
+                padding: 10px 0;
+            }
+
+            tbody td {
+                border-bottom: none;
+                padding: 4px 16px;
+            }
+
+            tbody td::before {
+                content: attr(data-label);
+                display: block;
+                font-size: 11px;
+                color: var(--ink-soft);
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                margin-bottom: 2px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrap">
+        <header>
+            <div>
+                <h1>Candidatos cadastrados</h1>
+                <p>Consulta de inscrições e status de check-in.</p>
+            </div>
+            <button id="sairBtn" style="font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:9px 16px; border-radius:9px; border:1px solid var(--border); background:var(--paper); color:var(--ink-soft); cursor:pointer;">Sair</button>
+        </header>
+
+        <div class="cards">
+            <div class="card">
+                <div class="num" id="numTotal">—</div>
+                <div class="label">Total de candidatos</div>
+            </div>
+            <div class="card feito">
+                <div class="num" id="numFeito">—</div>
+                <div class="label">Check-in feito</div>
+            </div>
+            <div class="card pendente">
+                <div class="num" id="numPendente">—</div>
+                <div class="label">Pendentes</div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <input type="text" id="buscaInput" placeholder="Buscar por nome ou CPF...">
+            <select id="salaSelect">
+                <option value="">Todas as salas</option>
+            </select>
+            <select id="statusSelect">
+                <option value="">Todos os status</option>
+                <option value="feito">Check-in feito</option>
+                <option value="pendente">Pendente</option>
+            </select>
+            <button id="atualizarBtn">Atualizar</button>
+        </div>
+
+        <div class="table-wrap">
+            <table id="tabela">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Sala</th>
+                        <th>Horário da prova</th>
+                        <th>Status</th>
+                        <th>Check-in em</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaBody">
+                    <tr>
+                        <td colspan="6" class="loading-msg">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer-note" id="atualizadoEm"></div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const tabelaBody = document.getElementById('tabelaBody');
+        const buscaInput = document.getElementById('buscaInput');
+        const salaSelect = document.getElementById('salaSelect');
+        const statusSelect = document.getElementById('statusSelect');
+
+        function formatarCpf(cpf) {
+            if (!cpf || cpf.length !== 11) return cpf || '';
+            return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9, 11)}`;
+        }
+
+        function formatarData(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleString('pt-BR');
+        }
+
+        let salasCarregadas = false;
+
+        async function carregar() {
+            tabelaBody.innerHTML = '<tr><td colspan="6" class="loading-msg">Carregando...</td></tr>';
+
+            const params = new URLSearchParams();
+            if (buscaInput.value.trim()) params.set('busca', buscaInput.value.trim());
+            if (salaSelect.value) params.set('sala', salaSelect.value);
+            if (statusSelect.value) params.set('status', statusSelect.value);
+
+            try {
+                const resp = await fetch(`${API_BASE}/candidatos?${params.toString()}`);
+
+                if (resp.status === 401) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    tabelaBody.innerHTML = `<tr><td colspan="6" class="empty">${data.mensagem || 'Erro ao carregar candidatos.'}</td></tr>`;
+                    return;
+                }
+
+                document.getElementById('numTotal').textContent = data.resumo.total;
+                document.getElementById('numFeito').textContent = data.resumo.total_checkin;
+                document.getElementById('numPendente').textContent = data.resumo.total_pendente;
+
+                if (!salasCarregadas) {
+                    const salas = [...new Set(data.candidatos.map(c => c.sala))].sort();
+                    salas.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s;
+                        opt.textContent = s;
+                        salaSelect.appendChild(opt);
+                    });
+                    salasCarregadas = true;
+                }
+
+                if (data.candidatos.length === 0) {
+                    tabelaBody.innerHTML = '<tr><td colspan="6" class="empty">Nenhum candidato encontrado.</td></tr>';
+                } else {
+                    tabelaBody.innerHTML = data.candidatos.map(c => `
+          <tr>
+            <td data-label="Nome">${c.nome}</td>
+            <td data-label="CPF" class="cpf">${formatarCpf(c.cpf)}</td>
+            <td data-label="Sala">${c.sala}</td>
+            <td data-label="Horário da prova">${formatarData(c.horario_prova)}</td>
+            <td data-label="Status">
+              ${c.checkin_feito
+                            ? '<span class="badge feito">✓ Check-in feito</span>'
+                            : '<span class="badge pendente">Pendente</span>'}
+            </td>
+            <td data-label="Check-in em">${c.checkin_feito ? formatarData(c.checkin_em) : '—'}</td>
+          </tr>
+        `).join('');
+                }
+
+                document.getElementById('atualizadoEm').textContent = 'Atualizado em ' + new Date().toLocaleTimeString('pt-BR');
+            } catch (err) {
+                tabelaBody.innerHTML = '<tr><td colspan="6" class="empty">Não foi possível conectar ao servidor.</td></tr>';
+            }
+        }
+
+        document.getElementById('atualizarBtn').addEventListener('click', carregar);
+        let buscaTimeout;
+        buscaInput.addEventListener('input', () => {
+            clearTimeout(buscaTimeout);
+            buscaTimeout = setTimeout(carregar, 350);
+        });
+        salaSelect.addEventListener('change', carregar);
+        statusSelect.addEventListener('change', carregar);
+
+        carregar();
+
+        document.getElementById('sairBtn').addEventListener('click', async () => {
+            try {
+                await fetch('/logout', { method: 'POST' });
+            } finally {
+                window.location.href = '/login.html';
+            }
+        });
+    </script>
+
+</body>
+
+</html>

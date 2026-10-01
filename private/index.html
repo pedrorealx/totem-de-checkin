@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Totem de Check-in — Confirmação de Presença</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16233E;
+    --ink-soft: #4B5871;
+    --paper: #FAFBFC;
+    --backdrop: #C7CDD4;
+    --bezel: #0F1B30;
+    --accent: #0F5C5C;
+    --accent-dark: #0C4747;
+    --success: #2E7D5B;
+    --success-bg: #E9F5EF;
+    --error: #B3261E;
+    --error-bg: #FBEAE9;
+    --warn: #B4650E;
+    --warn-bg: #FBF0E1;
+    --key-bg: #EFF1F3;
+    --key-border: #D6DAE0;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--backdrop);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    background-image:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.35), transparent 40%),
+      radial-gradient(circle at 80% 85%, rgba(255,255,255,0.25), transparent 45%);
+  }
+
+  .device {
+    width: 380px;
+    background: var(--bezel);
+    border-radius: 28px;
+    padding: 14px 14px 22px;
+    box-shadow:
+      0 30px 60px rgba(15, 23, 42, 0.35),
+      0 4px 12px rgba(15, 23, 42, 0.25);
+  }
+
+  .device-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #8A93A6;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    padding: 6px 10px 12px;
+  }
+
+  .device-label .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ADE80;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  .screen {
+    background: var(--paper);
+    border-radius: 18px;
+    min-height: 620px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .screen-header {
+    padding: 28px 28px 20px;
+    border-bottom: 1px solid #ECEEF1;
+  }
+
+  .screen-header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.25;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+
+  .screen-header p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  .screen-body {
+    flex: 1;
+    padding: 24px 28px 28px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---- Estado: entrada de CPF ---- */
+  .cpf-display {
+    display: flex;
+    gap: 7px;
+    justify-content: center;
+    margin: 4px 0 22px;
+  }
+
+  .cpf-slot {
+    width: 26px;
+    height: 40px;
+    border-bottom: 3px solid var(--key-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    transition: border-color 0.15s ease;
+  }
+
+  .cpf-slot.filled { border-color: var(--accent); }
+  .cpf-slot.sep { border-bottom: none; width: 10px; color: var(--ink-soft); font-size: 18px; align-self: flex-end; padding-bottom: 6px; }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .key {
+    background: var(--key-bg);
+    border: 1px solid var(--key-border);
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink);
+    padding: 15px 0;
+    cursor: pointer;
+    transition: background 0.1s ease, transform 0.05s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .key:active { background: #E2E6EA; transform: scale(0.97); }
+  .key.wide { grid-column: span 1; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+
+  .confirm-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15.5px;
+    font-weight: 600;
+    padding: 16px 0;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+    margin-top: auto;
+  }
+
+  .confirm-btn:hover:not(:disabled) { background: var(--accent-dark); }
+  .confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .totem-id-field {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 14px;
+  }
+
+  .totem-id-field input {
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-soft);
+    width: 90px;
+    border-bottom: 1px dotted var(--key-border);
+  }
+
+  /* ---- Estados de resultado ---- */
+  .result {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+  }
+
+  .result.active { display: flex; }
+
+  .result-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    font-size: 30px;
+  }
+
+  .result.success .result-icon { background: var(--success-bg); color: var(--success); }
+  .result.error .result-icon { background: var(--error-bg); color: var(--error); }
+  .result.warn .result-icon { background: var(--warn-bg); color: var(--warn); }
+
+  .result h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 19px;
+    margin: 0 0 8px;
+  }
+
+  .result p {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0 0 4px;
+    max-width: 270px;
+  }
+
+  .result-details {
+    margin-top: 18px;
+    width: 100%;
+    background: #F5F6F8;
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  .result-details div {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+  }
+
+  .result-details span:first-child { color: var(--ink-soft); }
+  .result-details span:last-child { font-weight: 600; }
+
+  .retry-btn {
+    margin-top: 22px;
+    background: none;
+    border: 1.5px solid var(--key-border);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 11px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .retry-btn:hover { border-color: var(--ink-soft); }
+
+  .loading {
+    flex: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .loading.active { display: flex; }
+
+  .spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid #E2E6EA;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 14px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div class="device-label"><span><span class="dot"></span>online</span><span>totem-01 · <a href="#" id="sairLink" style="color:#8A93A6;">sair</a></span></div>
+
+  <div class="screen">
+    <div class="screen-header">
+      <h1>Confirmação de presença</h1>
+      <p>Digite os 11 dígitos do seu CPF para confirmar sua presença na prova.</p>
+    </div>
+
+    <div class="screen-body">
+
+      <!-- Estado: entrada -->
+      <div id="entryState">
+        <div class="cpf-display" id="cpfDisplay"></div>
+
+        <div class="keypad" id="keypad">
+          <button class="key" data-key="1">1</button>
+          <button class="key" data-key="2">2</button>
+          <button class="key" data-key="3">3</button>
+          <button class="key" data-key="4">4</button>
+          <button class="key" data-key="5">5</button>
+          <button class="key" data-key="6">6</button>
+          <button class="key" data-key="7">7</button>
+          <button class="key" data-key="8">8</button>
+          <button class="key" data-key="9">9</button>
+          <button class="key wide" data-key="clear">limpar</button>
+          <button class="key" data-key="0">0</button>
+          <button class="key wide" data-key="back">⌫</button>
+        </div>
+
+        <p style="text-align:center; font-size:12px; color:#8A93A6; margin:10px 0 0;">
+          Dica: também dá pra digitar o CPF direto no teclado do computador.
+        </p>
+
+        <button class="confirm-btn" id="confirmBtn" disabled>Confirmar presença</button>
+
+        <div class="totem-id-field">
+          ID do totem: <input type="text" id="totemIdInput" value="totem-01">
+        </div>
+      </div>
+
+      <!-- Estado: carregando -->
+      <div class="loading" id="loadingState">
+        <div class="spinner"></div>
+        <p style="color:var(--ink-soft); font-size:13.5px;">Confirmando...</p>
+      </div>
+
+      <!-- Estado: sucesso -->
+      <div class="result success" id="successState">
+        <div class="result-icon">✓</div>
+        <h2>Presença confirmada</h2>
+        <p>Dirija-se à sala indicada abaixo.</p>
+        <div class="result-details" id="successDetails"></div>
+        <button class="retry-btn" onclick="resetTotem()">Novo check-in</button>
+      </div>
+
+      <!-- Estado: erro -->
+      <div class="result error" id="errorState">
+        <div class="result-icon">!</div>
+        <h2 id="errorTitle">Não foi possível confirmar</h2>
+        <p id="errorMessage"></p>
+        <button class="retry-btn" onclick="resetTotem()">Tentar novamente</button>
+      </div>
+
+      <!-- Estado: bloqueado (rate limit) -->
+      <div class="result warn" id="warnState">
+        <div class="result-icon">⏱</div>
+        <h2>Muitas tentativas</h2>
+        <p id="warnMessage"></p>
+        <button class="retry-btn" onclick="resetTotem()">Voltar</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = window.location.origin;
+  let cpf = '';
+
+  const cpfDisplay = document.getElementById('cpfDisplay');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const keypad = document.getElementById('keypad');
+
+  function renderCpf() {
+    cpfDisplay.innerHTML = '';
+    const groups = [3, 3, 3, 2];
+    let idx = 0;
+    groups.forEach((size, gi) => {
+      for (let i = 0; i < size; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'cpf-slot' + (idx < cpf.length ? ' filled' : '');
+        slot.textContent = idx < cpf.length ? cpf[idx] : '';
+        cpfDisplay.appendChild(slot);
+        idx++;
+      }
+      if (gi < groups.length - 1) {
+        const sep = document.createElement('div');
+        sep.className = 'cpf-slot sep';
+        sep.textContent = gi < 2 ? '.' : '-';
+        cpfDisplay.appendChild(sep);
+      }
+    });
+    confirmBtn.disabled = cpf.length !== 11;
+  }
+
+  keypad.addEventListener('click', (e) => {
+    const key = e.target.dataset.key;
+    if (!key) return;
+    if (key === 'clear') { cpf = ''; }
+    else if (key === 'back') { cpf = cpf.slice(0, -1); }
+    else if (cpf.length < 11) { cpf += key; }
+    renderCpf();
+  });
+
+  // Permite digitar o CPF pelo teclado físico, além de clicar no teclado na tela.
+  document.addEventListener('keydown', (e) => {
+    const entryVisivel = document.getElementById('entryState').style.display !== 'none';
+    if (!entryVisivel) return;
+
+    if (e.key >= '0' && e.key <= '9') {
+      e.preventDefault();
+      if (cpf.length < 11) cpf += e.key;
+      renderCpf();
+    } else if (e.key === 'Backspace') {
+      e.preventDefault();
+      cpf = cpf.slice(0, -1);
+      renderCpf();
+    } else if (e.key === 'Escape' || e.key === 'Delete') {
+      e.preventDefault();
+      cpf = '';
+      renderCpf();
+    } else if (e.key === 'Enter' && cpf.length === 11 && !confirmBtn.disabled) {
+      e.preventDefault();
+      confirmBtn.click();
+    }
+  });
+
+  function showState(id) {
+    ['entryState', 'loadingState', 'successState', 'errorState', 'warnState']
+      .forEach(s => {
+        const el = document.getElementById(s);
+        if (!el) return;
+        if (s === id) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+    // entryState não usa a classe 'active' (fica visível via display do container pai)
+    document.getElementById('entryState').style.display = (id === 'entryState') ? 'block' : 'none';
+  }
+
+  function resetTotem() {
+    cpf = '';
+    renderCpf();
+    showState('entryState');
+  }
+
+  confirmBtn.addEventListener('click', async () => {
+    showState('loadingState');
+    const totemId = document.getElementById('totemIdInput').value || 'totem-01';
+
+    try {
+      const resp = await fetch(API_BASE + '/checkin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Totem-Id': totemId
+        },
+        body: JSON.stringify({ cpf })
+      });
+
+      const data = await resp.json();
+
+      if (resp.status === 200) {
+        document.getElementById('successDetails').innerHTML = `
+          <div><span>Nome</span><span>${data.candidato.nome}</span></div>
+          <div><span>Sala</span><span>${data.candidato.sala}</span></div>
+          <div><span>Horário</span><span>${new Date(data.candidato.horario_prova).toLocaleString('pt-BR')}</span></div>
+        `;
+        showState('successState');
+      } else if (resp.status === 429) {
+        document.getElementById('warnMessage').textContent = data.mensagem;
+        showState('warnState');
+      } else {
+        document.getElementById('errorMessage').textContent = data.mensagem || 'Erro desconhecido.';
+        showState('errorState');
+      }
+    } catch (err) {
+      document.getElementById('errorMessage').textContent =
+        'Não foi possível conectar ao servidor. Verifique se o backend (npm start) está rodando.';
+      showState('errorState');
+    }
+  });
+
+  renderCpf();
+
+  document.getElementById('sairLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+      await fetch('/logout', { method: 'POST' });
+    } finally {
+      window.location.href = '/login.html';
+    }
+  });
+</script>
+
+</body>
+</html>
